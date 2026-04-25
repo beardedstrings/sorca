@@ -1,4 +1,4 @@
-# SOC Orchestrator
+# SORCA - Security Orchestrated Response & Case Assistant
 
 A local case management and orchestration UI for security operations.
 Built with Flask on WSL. All tool integrations route through Tines — no API keys stored here.
