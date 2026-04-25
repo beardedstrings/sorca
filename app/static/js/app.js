@@ -8,6 +8,23 @@ const state = {
     settingsOpen:  false,
 };
 
+/* ── CSRF ─────────────────────────────────────────────── */
+function csrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+function postJSON(url, body) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken':  csrfToken(),
+        },
+        body: JSON.stringify(body),
+    });
+}
+
 /* ── Init ────────────────────────────────────────────── */
 window.addEventListener('DOMContentLoaded', () => {
     startClocks();
@@ -54,9 +71,9 @@ function selectTool(btn) {
     const ws = document.getElementById('tool-workspace');
     ws.innerHTML = `
         <div class="tool-header">
-            <span class="tool-title">${label}</span>
+            <span class="tool-title">${escHtml(label)}</span>
         </div>
-        <div class="tool-hint">${hint}</div>
+        <div class="tool-hint">${escHtml(hint)}</div>
         <div>
             <label class="target-label">TARGET</label>
             <input type="text" id="target-input" class="target-input"
@@ -92,11 +109,8 @@ async function runAction() {
     addLog(`run · ${state.currentAction} → ${target}`, 'action');
 
     try {
-        const resp = await fetch(`/actions/${state.currentAction}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ target, case_id: caseId || '', email, token }),
-        });
+        const resp = await postJSON(`/actions/${state.currentAction}`,
+            { target, case_id: caseId || '', email, token });
         const data = await resp.json();
 
         if (data.error) {
@@ -248,11 +262,8 @@ async function updateCase() {
     addLog(`update case · ${caseId}`, 'action');
 
     try {
-        const resp = await fetch('/actions/update_ticket', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ target: note, case_id: caseId, email, token }),
-        });
+        const resp = await postJSON('/actions/update_ticket',
+            { target: note, case_id: caseId, email, token });
         const data = await resp.json();
         if (data.error) {
             setResult(box, 'error', `✖ ${data.error}`);
@@ -503,11 +514,8 @@ async function fetchStories() {
     addLog('fetching Tines stories...', 'action');
 
     try {
-        const resp = await fetch('/actions/stories', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ target: 'fetch', email, token }),
-        });
+        const resp = await postJSON('/actions/stories',
+            { target: 'fetch', email, token });
         const data = await resp.json();
 
         if (data.error || !data.categories) {
