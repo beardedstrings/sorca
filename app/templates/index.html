@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORCA — Orchestrated Response & Case Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <svg class="topbar-logo" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" stroke="var(--accent)" stroke-width="1.5"/>
+                <circle cx="20" cy="20" r="10" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2" opacity="0.6"/>
+                <circle cx="20" cy="20" r="3" fill="var(--accent)"/>
+                <line x1="20" y1="2" x2="20" y2="10" stroke="var(--accent)" stroke-width="1.5"/>
+                <line x1="20" y1="30" x2="20" y2="38" stroke="var(--accent)" stroke-width="1.5"/>
+                <line x1="2" y1="20" x2="10" y2="20" stroke="var(--accent)" stroke-width="1.5"/>
+                <line x1="30" y1="20" x2="38" y2="20" stroke="var(--accent)" stroke-width="1.5"/>
+            </svg>
+            <span class="topbar-name">ORCA</span>
+        </div>
+
+        <nav class="topbar-tabs">
+            <button class="tab active" data-tab="tools" onclick="switchTab('tools',this)">Tools</button>
+            <button class="tab" data-tab="cases" onclick="switchTab('cases',this)">Cases</button>
+            <button class="tab" data-tab="links" onclick="switchTab('links',this)">Links</button>
+            <button class="tab" data-tab="stories" onclick="switchTab('stories',this)">Tines Stories</button>
+        </nav>
+
+        <div class="topbar-right">
+            <div class="case-indicator" id="case-indicator">
+                <span class="ci-dot" id="ci-dot"></span>
+                <span class="ci-label" id="ci-label">No Case Loaded</span>
+            </div>
+            <div class="clocks">
+                <div class="clock-block">
+                    <span class="clock-tz">EST</span>
+                    <span class="clock-time" id="clock-est">--:--:--</span>
+                </div>
+                <div class="clock-sep">|</div>
+                <div class="clock-block">
+                    <span class="clock-tz">LOCAL</span>
+                    <span class="clock-time" id="clock-local">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- BODY ROW -->
+    <div class="body-row">
+
+        <!-- LEFT PANEL -->
+        <aside class="left-panel" id="left-panel">
+            <div class="panel-topbar">
+                <span class="panel-ctrl-label" id="left-panel-label">Tools</span>
+                <div class="font-controls">
+                    <button class="fc-btn" onclick="adjustFont('left',-1)" title="Smaller text">A-</button>
+                    <button class="fc-btn" onclick="adjustFont('left',1)" title="Larger text">A+</button>
+                </div>
+            </div>
+
+            <!-- TOOLS VIEW -->
+            <div id="left-tools-view" class="left-scroll">
+                <div class="case-load-section">
+                    <label class="input-label">LOAD CASE</label>
+                    <div class="case-input-row">
+                        <input type="text" id="case-id" class="case-input" placeholder="e.g. bb123456"
+                            onkeydown="if(event.key==='Enter') loadCase()"/>
+                        <button class="load-btn" onclick="loadCase()">Load</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="section-label">Investigation</span>
+                    <button class="tool-btn" data-action="whois" data-label="Whois Lookup"
+                        data-hint="Enter an IP address or domain to retrieve registration and ownership information."
+                        onclick="selectTool(this)">
+                        <span class="tool-icon">◎</span><span class="tool-name">Whois</span>
+                    </button>
+                    <button class="tool-btn" data-action="ip_block" data-label="IP Block"
+                        data-hint="Enter an IP address to submit a block request via Tines."
+                        onclick="selectTool(this)">
+                        <span class="tool-icon">⊘</span><span class="tool-name">IP Block</span>
+                    </button>
+                    <button class="tool-btn" data-action="domain_block" data-label="Domain Block"
+                        data-hint="Enter a domain name to submit it for DNS blocking."
+                        onclick="selectTool(this)">
+                        <span class="tool-icon">⊗</span><span class="tool-name">Domain Block</span>
+                    </button>
+                    <button class="tool-btn" data-action="user_info" data-label="User Info"
+                        data-hint="Enter a username or email to retrieve directory and account details."
+                        onclick="selectTool(this)">
+                        <span class="tool-icon">◈</span><span class="tool-name">User Info</span>
+                    </button>
+                    <button class="tool-btn" data-action="hus" data-label="HUS — Host, User & Sign-ins"
+                        data-hint="Enter a username to pull host info, user profile, and recent sign-in activity in one call."
+                        onclick="selectTool(this)">
+                        <span class="tool-icon">◉</span><span class="tool-name">HUS</span>
+                        <span class="tool-badge">3-in-1</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="section-label">Notify</span>
+                    <button class="tool-btn" data-action="notify_teams" data-label="Notify Teams"
+                        data-hint="Send a message to the security Teams channel. Include context and case ID."
+                        onclick="selectTool(this)">
+                        <span class="tool-icon">◆</span><span class="tool-name">Notify Teams</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW -->
+            <div id="left-settings-view" class="left-scroll" style="display:none;">
+                <div class="settings-section">
+                    <span class="settings-section-label">Identity</span>
+                    <label class="settings-label">Your Email</label>
+                    <input type="email" id="settings-email" class="settings-input" placeholder="you@company.com"/>
+                    <label class="settings-label">Token / Password</label>
+                    <input type="password" id="settings-token" class="settings-input" placeholder="••••••••••••"/>
+                    <button class="settings-save-btn" onclick="saveIdentity()">Save Identity</button>
+                    <span class="settings-saved-msg" id="identity-saved"></span>
+                </div>
+
+                <div class="settings-section">
+                    <span class="settings-section-label">Appearance</span>
+                    <label class="settings-label">Accent Color</label>
+                    <div class="color-presets">
+                        <button class="color-swatch" style="background:#00c2e0" onclick="setAccent('#00c2e0')" title="Cyan"></button>
+                        <button class="color-swatch" style="background:#00e5a0" onclick="setAccent('#00e5a0')" title="Green"></button>
+                        <button class="color-swatch" style="background:#7c8cf8" onclick="setAccent('#7c8cf8')" title="Indigo"></button>
+                        <button class="color-swatch" style="background:#f5a623" onclick="setAccent('#f5a623')" title="Amber"></button>
+                        <button class="color-swatch" style="background:#ff4d6a" onclick="setAccent('#ff4d6a')" title="Red"></button>
+                    </div>
+                    <label class="settings-label">Custom Accent</label>
+                    <input type="color" id="accent-picker" class="settings-color-input" value="#00c2e0"
+                        oninput="setAccent(this.value)"/>
+                </div>
+
+                <div class="settings-section">
+                    <span class="settings-section-label">Panels</span>
+                    <button class="settings-save-btn" onclick="resetPanels()">Reset Panel Widths</button>
+                </div>
+            </div>
+
+            <!-- Left footer -->
+            <div class="left-footer">
+                <div class="status-row">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="status-text">Webhook · Ready</span>
+                </div>
+                <button class="settings-toggle" id="settings-toggle" onclick="toggleSettings()" title="Settings">⚙</button>
+            </div>
+
+            <div class="resize-handle resize-right" id="left-resize"></div>
+        </aside>
+
+        <!-- CENTER -->
+        <main class="center-content">
+
+            <!-- TOOLS TAB -->
+            <div class="tab-content active" id="tab-tools">
+                <div class="tool-workspace" id="tool-workspace">
+                    <div class="tool-placeholder">
+                        <div class="placeholder-icon">⬡</div>
+                        <p>Select a tool from the left panel to begin</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CASES TAB -->
+            <div class="tab-content" id="tab-cases">
+                <div class="case-tab-layout" id="case-view">
+                    <div class="tool-placeholder">
+                        <div class="placeholder-icon">◎</div>
+                        <p>No case loaded. Enter a case ID in the left panel.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LINKS TAB -->
+            <div class="tab-content" id="tab-links">
+                <div class="tab-page-header">
+                    <span class="tab-page-title">My Links</span>
+                    <div class="tab-page-actions">
+                        <button class="action-btn" onclick="showAddLink()">+ Add Link</button>
+                        <button class="action-btn secondary" onclick="document.getElementById('link-import').click()">↑ Import .txt</button>
+                        <input type="file" id="link-import" accept=".txt,.json" style="display:none" onchange="importLinks(event)"/>
+                    </div>
+                </div>
+                <div id="add-link-form" class="add-link-form" style="display:none;">
+                    <input type="text" id="new-link-name" class="settings-input" placeholder="Link name"/>
+                    <input type="url" id="new-link-url" class="settings-input" placeholder="https://..."/>
+                    <input type="text" id="new-link-note" class="settings-input" placeholder="Note (optional)"/>
+                    <div class="form-btns">
+                        <button class="load-btn" onclick="addLink()">Add</button>
+                        <button class="action-btn secondary" onclick="hideAddLink()">Cancel</button>
+                    </div>
+                </div>
+                <div class="links-grid" id="links-grid">
+                    <div class="tool-placeholder">
+                        <div class="placeholder-icon">⬡</div>
+                        <p>No links yet. Add one or import a file.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TINES STORIES TAB -->
+            <div class="tab-content" id="tab-stories">
+                <div class="tab-page-header">
+                    <span class="tab-page-title">Tines Stories</span>
+                    <div class="tab-page-actions">
+                        <button class="action-btn" onclick="fetchStories()">↻ Refresh from Tines</button>
+                    </div>
+                </div>
+                <div id="stories-container" class="stories-container">
+                    <div class="tool-placeholder">
+                        <div class="placeholder-icon">◎</div>
+                        <p>Click Refresh to load stories from Tines.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- RIGHT PANEL -->
+        <aside class="right-panel" id="right-panel">
+            <div class="resize-handle resize-left" id="right-resize"></div>
+
+            <div class="panel-topbar">
+                <span class="panel-ctrl-label">Case &amp; Log</span>
+                <div class="font-controls">
+                    <button class="fc-btn" onclick="adjustFont('right',-1)" title="Smaller text">A-</button>
+                    <button class="fc-btn" onclick="adjustFont('right',1)" title="Larger text">A+</button>
+                </div>
+            </div>
+
+            <div class="right-scroll" id="right-content">
+                <div class="panel-section-header">
+                    <span class="panel-title">Case Details</span>
+                    <span class="panel-badge" id="case-status">No Case</span>
+                </div>
+                <div class="case-detail-block" id="case-details">
+                    <div class="case-empty">Load a case to see details here.</div>
+                </div>
+
+                <div class="panel-section-header" style="margin-top:1rem;">
+                    <span class="panel-title">Activity Log</span>
+                </div>
+                <div class="activity-log" id="activity-log">
+                    <div class="log-entry init">● ORCA initialized</div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
