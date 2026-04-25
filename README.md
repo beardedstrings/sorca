@@ -9,8 +9,8 @@ Built with Flask on WSL. All tool integrations route through Tines — no API ke
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/soc-orchestrator.git
-cd soc-orchestrator
+git clone https://github.com/beardedstrings/soc-orchestrator.git
+cd sorca
 ```
 
 ### 2. Create a virtual environment
