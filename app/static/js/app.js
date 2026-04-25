@@ -20,19 +20,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* ── Clocks ──────────────────────────────────────────── */
 function startClocks() {
+    const fmtOpts = { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false };
+    // America/New_York follows DST automatically (EST in winter, EDT in summer).
+    const estFmt   = new Intl.DateTimeFormat('en-US', { ...fmtOpts, timeZone: 'America/New_York' });
+    const localFmt = new Intl.DateTimeFormat('en-US', fmtOpts);
+
     function tick() {
         const now = new Date();
-
-        // EST = UTC-5 (no DST adjustment here, close enough for a SOC tool)
-        const estOffset = -5 * 60;
-        const localOffset = now.getTimezoneOffset();
-        const estTime = new Date(now.getTime() + (localOffset + estOffset) * 60000);
-
-        document.getElementById('clock-est').textContent   = fmt(estTime);
-        document.getElementById('clock-local').textContent = fmt(now);
-    }
-    function fmt(d) {
-        return d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+        document.getElementById('clock-est').textContent   = estFmt.format(now);
+        document.getElementById('clock-local').textContent = localFmt.format(now);
     }
     tick();
     setInterval(tick, 1000);
